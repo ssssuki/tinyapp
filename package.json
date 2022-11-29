@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/ssssuki/tinyapp/issues"
   },
-  "homepage": "https://github.com/ssssuki/tinyapp#readme"
+  "homepage": "https://github.com/ssssuki/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
 }
