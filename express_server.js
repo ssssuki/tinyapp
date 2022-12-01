@@ -130,18 +130,24 @@ res.redirect("/urls");
 
 app.post("/login",(req,res)=>{
   const email=req.body.email
+
   var user_id
   for(var userID in users){
-    if(users[userID].email===email){
+    if(users[userID].email===email && users[userID].password===req.body.password){
       user_id=users[userID].id
     }
+  }
+  if (user_id ===undefined){
+    res.send("403")
+    return
   }
   console.log(users)
   res.cookie("user_id",user_id)
   res.redirect("/urls");
 });
 
+
 app.post("/logout",(req,res)=>{
   res.clearCookie('user_id')
-  res.redirect("/urls");
+  res.redirect("/urls/login");
 });
