@@ -20,10 +20,21 @@ const users = {
 
 app.set("view engine", "ejs");
 
+app.use(express.urlencoded({ extended: true }));
+
+
+
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  }
 };
+
 
 app.get("/", (req, res) => {
   console.log(req.cookies)
@@ -45,34 +56,58 @@ app.get("/hello", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
-  const id=req.cookies["user_id"]
-  templateVars.user = users[id];
-  console.log(users)
-  res.render("urls_index", templateVars);
+  const id = req.cookies["user_id"]
+  //if user_id is not present then throw error
+  if (users[id]) {
+    templateVars.user = users[id];
+    console.log(users)
+    templateVars.urls=urlsForUser(id)
+    console.log(templateVars)
+    res.render("urls_index", templateVars)
+  }
+  else {
+    return res.send("user is not logged in", 403)
+  }
 });
+
+//id refers to the current user's id
+function urlsForUser(id) {
+  console.log(id)
+  var urlDatabaseKeys = Object.keys(urlDatabase)
+  var urls = {}
+
+  for (Key of urlDatabaseKeys) {
+    console.log('current key',Key)
+    console.log['current value',urlDatabase[Key]]
+    if (id === urlDatabase[Key].userID) {
+    urls[Key]=urlDatabase[Key]
+    }
+  }
+  return urls
+}
 
 app.get("/urls/new", (req, res) => {
   const templateVars = {};
   templateVars.user = users[req.cookies["user_id"]];
-  if(req.cookies["user_id"]===undefined){
+  if (req.cookies["user_id"] === undefined) {
     res.redirect("/urls");
   } else {
     res.render("urls_new", templateVars)
   }
 });
 
-app.get("/urls/register", (req, res) => {
+app.get("/register", (req, res) => {
   const templateVars = { user: users[req.cookies["user_id"]] };
-  if(req.cookies["user_id"]!==undefined){
+  if (req.cookies["user_id"]) {
     res.redirect("/urls");
   } else {
     res.render("urls_register", templateVars)
   }
 });
 
-app.get("/urls/login", (req, res) => {
+app.get("/login", (req, res) => {
   const templateVars = { user: users[req.cookies["user_id"]] };
-  if(req.cookies["user_id"]!==undefined){
+  if (req.cookies["user_id"]) {
     res.redirect("/urls");
   } else {
     res.render("urls_login", templateVars)
@@ -81,23 +116,27 @@ app.get("/urls/login", (req, res) => {
 
 
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
+  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id].longURL };
   res.render("urls_show", templateVars);
 });
 
 
 
 
-app.use(express.urlencoded({ extended: true }));
 
 app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
-  if(req.cookies["user_id"]===undefined){
+  if (req.cookies["user_id"] === undefined) {
     res.send("Not logged in");
   } else {
-    res.send("Ok");
+    let shortURL = generateRandomString();
+    let longURL = req.body.longURL
+    let userID = req.cookies.user_id
+
+    urlDatabase[shortURL] = { longURL, userID }
+    res.redirect('/urls')
   }
-   // Respond with 'Ok' (we will replace this)
+  // Respond with 'Ok' (we will replace this)
 });
 
 function generateRandomString() {
@@ -112,63 +151,66 @@ function generateRandomString() {
 
 
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id]
-  if(longURL===undefined){
+  const longURL = urlDatabase[req.params.id].longURL
+  if (longURL === undefined) {
     res.send("Not exist");
   } else {
-    res.redirect(longURL)};
+    res.redirect(longURL)
+  };
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-  delete urlDatabase[req.params.id];
+  delete urlDatabase[req.params.id]
+
+
   res.redirect("/urls");
 });
 
-app.post("/urls/register",(req,res)=>{
-  const id=generateRandomString()
+app.post("/urls/register", (req, res) => {
+  const id = generateRandomString()
 
-  for(var userID in users){
-     if(req.body.email===users[userID].email){
+  for (var userID in users) {
+    if (req.body.email === users[userID].email) {
       res.send("400")
-     }
-  }
-  if(req.body.email==="" || req.body.password==="" ){
-    res.send("400")
-  } else {
-    users[id]={id: id, email: req.body.email, password:req.body.password}
-    res.cookie("user_id",id)
-    res.redirect("/urls");
-  }
-  
-
-});
-
-
-app.post("/urls/:id",(req,res)=>{
-console.log(req.body)
-res.redirect("/urls");
-});
-
-app.post("/login",(req,res)=>{
-  const email=req.body.email
-
-  var user_id
-  for(var userID in users){
-    if(users[userID].email===email && users[userID].password===req.body.password){
-      user_id=users[userID].id
     }
   }
-  if (user_id ===undefined){
+  if (req.body.email === "" || req.body.password === "") {
+    res.send("400")
+  } else {
+    users[id] = { id: id, email: req.body.email, password: req.body.password }
+    res.cookie("user_id", id)
+    res.redirect("/urls");
+  }
+
+
+});
+
+
+app.post("/urls/:id", (req, res) => {
+  console.log(req.body)
+  res.redirect("/urls");
+});
+
+app.post("/login", (req, res) => {
+  const email = req.body.email
+
+  var user_id
+  for (var userID in users) {
+    if (users[userID].email === email && users[userID].password === req.body.password) {
+      user_id = users[userID].id
+    }
+  }
+  if (user_id === undefined) {
     res.send("403")
     return
   }
   console.log(users)
-  res.cookie("user_id",user_id)
+  res.cookie("user_id", user_id)
   res.redirect("/urls");
 });
 
 
-app.post("/logout",(req,res)=>{
+app.post("/logout", (req, res) => {
   res.clearCookie('user_id')
-  res.redirect("/urls/login");
+  res.redirect("/login");
 });
