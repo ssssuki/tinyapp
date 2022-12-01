@@ -52,20 +52,25 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   const templateVars = {};
-  templateVars.user = req.cookies["user_id"];
+  templateVars.user = users[req.cookies["user_id"]];
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/register", (req, res) => {
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
+  const templateVars = { user: users[req.cookies["user_id"]] };
   res.render("urls_register", templateVars);
 });
+
+app.get("/urls/login", (req, res) => {
+  const templateVars = { user: users[req.cookies["user_id"]] };
+  res.render("urls_login", templateVars);
+});
+
 
 app.get("/urls/:id", (req, res) => {
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render("urls_show", templateVars);
 });
-
 
 
 
@@ -124,8 +129,15 @@ res.redirect("/urls");
 });
 
 app.post("/login",(req,res)=>{
-  const username=req.body.username
-  res.cookie("username",username)
+  const email=req.body.email
+  var user_id
+  for(var userID in users){
+    if(users[userID].email===email){
+      user_id=users[userID].id
+    }
+  }
+  console.log(users)
+  res.cookie("user_id",user_id)
   res.redirect("/urls");
 });
 
