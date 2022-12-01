@@ -100,9 +100,20 @@ app.post("/urls/:id/delete", (req, res) => {
 
 app.post("/urls/register",(req,res)=>{
   const id=generateRandomString()
-  users[id]={id, email: req.body.email, password:req.body.password}
-  res.cookie("user_id",id)
-  res.redirect("/urls");
+
+  for(var userID in users){
+     if(req.body.email===users[userID].email){
+      res.send("400")
+     }
+  }
+  if(req.body.email==="" || req.body.password==="" ){
+    res.send("400")
+  } else {
+    users[id]={id: id, email: req.body.email, password:req.body.password}
+    res.cookie("user_id",id)
+    res.redirect("/urls");
+  }
+  
 
 });
 
