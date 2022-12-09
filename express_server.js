@@ -39,7 +39,11 @@ app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  if (req.session["user_id"] !== undefined) {
+    res.redirect("/urls");
+  } else {
+    res.redirect("/login");
+  }
 });
 
 app.get("/urls.json", (req, res) => {
@@ -65,7 +69,7 @@ app.get("/urls", (req, res) => {
 });
 
 //id refers to the current user's id
-let urlsForUser = function(id) {
+let urlsForUser = function (id) {
   let urlDatabaseKeys = Object.keys(urlDatabase);
   let urls = {};
 
@@ -109,10 +113,15 @@ app.get("/login", (req, res) => {
 
 app.get("/urls/:id", (req, res) => {
 
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id].longURL };
+
   if (req.session["user_id"] === undefined) {
     res.send("Not logged in");
+  } else if (req.session["user_id"] !== urlDatabase[req.params.id].userID) {
+    res.send("Not authorized to edit this url");
+  } else if (urlDatabase[req.params.id] === undefined) {
+    res.send("URL does not exist!");
   } else {
+    const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id].longURL };
     res.render("urls_show", templateVars);
   }
 });
@@ -134,7 +143,7 @@ app.post("/urls", (req, res) => {
   }
 });
 
-let generateRandomString = function() {
+let generateRandomString = function () {
   let result = '';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const charactersLength = characters.length;
@@ -158,6 +167,8 @@ app.get("/u/:id", (req, res) => {
 app.post("/urls/:id/delete", (req, res) => {
   if (req.session["user_id"] === undefined) {
     res.send("Not logged in");
+  } else if (req.session["user_id"] !== urlDatabase[req.params.id].userID) {
+    res.send("Not authorized!");
   } else {
     delete urlDatabase[req.params.id];
     res.redirect("/urls");
@@ -189,6 +200,8 @@ app.post("/urls/register", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   if (req.session["user_id"] === undefined) {
     res.send("Not logged in");
+  } else if (req.session["user_id"] !== urlDatabase[req.params.id].userID) {
+    res.send("Not authorized!");
   } else {
     urlDatabase[req.params.id].longURL = req.body.longURL;
     res.redirect("/urls");
