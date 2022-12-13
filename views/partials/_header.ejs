@@ -9,10 +9,10 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-        <a href="/register" class="nav-item nav-link">Register</a>
+        
         <% if(user===undefined) { %>
           <a href="/login" class="nav-item nav-link">Login</a>
-
+          <a href="/register" class="nav-item nav-link">Register</a>
           <% } else { %>
             <div class="form-group mb-2">
               <form class="form-inline my-2 my-lg-0" action="/logout" method="POST">

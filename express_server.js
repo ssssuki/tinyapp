@@ -85,7 +85,7 @@ app.get("/urls/new", (req, res) => {
   const templateVars = {};
   templateVars.user = users[req.session["user_id"]];
   if (req.session["user_id"] === undefined) {
-    res.redirect("/urls");
+    res.redirect("/login");
   } else {
     res.render("urls_new", templateVars);
   }
@@ -121,7 +121,7 @@ app.get("/urls/:id", (req, res) => {
   } else if (urlDatabase[req.params.id] === undefined) {
     res.send("URL does not exist!");
   } else {
-    const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id].longURL };
+    const templateVars = { user: users[req.session["user_id"]], id: req.params.id, longURL: urlDatabase[req.params.id].longURL };
     res.render("urls_show", templateVars);
   }
 });
@@ -226,6 +226,7 @@ app.post("/login", (req, res) => {
 
 
 app.post("/logout", (req, res) => {
+  req.session = null;
   res.clearCookie("session");
   res.redirect("/login");
 });
